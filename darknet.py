@@ -278,7 +278,7 @@ netMain = None
 metaMain = None
 altNames = None
 
-def performDetect(imagePath="data/dog.jpg", thresh= 0.25, configPath = "./cfg/yolov3.cfg", weightPath = "yolov3.weights", metaPath= "./cfg/coco.data", showImage= True, makeImageOnly = False, initOnly= False):
+def loadNet(configPath = "./cfg/yolov3.cfg", weightPath = "yolov3.weights", metaPath= "./cfg/coco.data"):
     """
     Convenience function to handle the detection and returns of objects.
 
@@ -327,7 +327,6 @@ def performDetect(imagePath="data/dog.jpg", thresh= 0.25, configPath = "./cfg/yo
     """
     # Import the global variables. This lets us instance Darknet once, then just call performDetect() again without instancing again
     global metaMain, netMain, altNames #pylint: disable=W0603
-    assert 0 < thresh < 1, "Threshold should be a float between zero and one (non-inclusive)"
     if not os.path.exists(configPath):
         raise ValueError("Invalid config path `"+os.path.abspath(configPath)+"`")
     if not os.path.exists(weightPath):
@@ -359,6 +358,13 @@ def performDetect(imagePath="data/dog.jpg", thresh= 0.25, configPath = "./cfg/yo
                     pass
         except Exception:
             pass
+
+    return netMain, metaMain
+
+
+def performDetect(netMain, metaMain, imagePath="data/dog.jpg", thresh= 0.25, showImage= False, makeImageOnly = False, initOnly= False):
+
+    assert 0 < thresh < 1, "Threshold should be a float between zero and one (non-inclusive)"
     if initOnly:
         print("Initialized detector")
         return None
@@ -368,6 +374,10 @@ def performDetect(imagePath="data/dog.jpg", thresh= 0.25, configPath = "./cfg/yo
     #detections = detect(netMain, metaMain, imagePath, thresh)	# if is used cv2.imread(image)
     detections = detect(netMain, metaMain, imagePath.encode("ascii"), thresh)
     if showImage:
+        plotDetections(detections, imagePath, makeImageOnly)
+    return detections
+
+def plotDetections(detections, imagePath, makeImageOnly):
         try:
             from skimage import io, draw
             import numpy as np
@@ -419,7 +429,7 @@ def performDetect(imagePath="data/dog.jpg", thresh= 0.25, configPath = "./cfg/yo
             }
         except Exception as e:
             print("Unable to show image: "+str(e))
-    return detections
 
 if __name__ == "__main__":
-    print(performDetect())
+    netMain, metaMain = loadNet()
+    print(performDetect(netMain, metaMain))
