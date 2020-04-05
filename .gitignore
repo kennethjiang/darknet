@@ -28,3 +28,6 @@ Thumbs.db
 # CMake #
 cmake-build-debug/
 CMakeLists.txt
+
+darknet
+uselib
